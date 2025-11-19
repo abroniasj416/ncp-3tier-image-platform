@@ -174,7 +174,7 @@ const styles = {
     padding: '12px',
     borderRadius: '8px',
     backgroundColor: '#fff',
-    border: '1px solid '#eee',
+    border: '1px solid #eee',
   },
   pre: {
     backgroundColor: '#f5f5f5',
