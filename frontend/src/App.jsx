@@ -50,7 +50,7 @@ function App() {
       setUploadError('')
       setUploadResult(null)
 
-      const res = await fetch(`${API_BASE}/api/images`, {
+      const res = await fetch(`${API_BASE}/api/images/upload`, {
         method: 'POST',
         body: formData,
       })
@@ -105,9 +105,9 @@ function App() {
           <div style={styles.resultBox}>
             <p>업로드 결과:</p>
             <pre style={styles.pre}>{JSON.stringify(uploadResult, null, 2)}</pre>
-            {uploadResult.previewUrl && (
+            {uploadResult.objectUrl && ( 
               <img
-                src={uploadResult.previewUrl}
+                src={uploadResult.objectUrl}
                 alt="업로드 미리보기"
                 style={styles.preview}
               />
