@@ -30,6 +30,9 @@ public class ImageService {
     @Value("${ncp.storage.base-folder}")
     private String baseFolder;
 
+    @Value("${ncp.optimizer.domain}")
+    private String optimizerDomain;
+
     /**
      * MultipartFile을 Object Storage에 업로드하고,
      * 퍼블릭 URL과 오브젝트 키를 반환한다.
@@ -55,7 +58,9 @@ public class ImageService {
         }
 
         String objectUrl = buildPublicUrl(objectKey);
-        return new ImageUploadResponse(objectUrl, objectKey);
+        String optimizedUrl = buildOptimizerUrl(objectKey);
+
+        return new ImageUploadResponse(objectUrl, objectKey, optimizedUrl);
     }
 
     private void validateNotEmpty(MultipartFile file) {
@@ -101,6 +106,23 @@ public class ImageService {
     private String buildPublicUrl(String objectKey) {
         return String.format(
                 "https://%s.kr.object.ncloudstorage.com/%s",
+                bucketName,
+                objectKey
+        );
+    }
+
+    /**
+     * Image Optimizer를 거친 리사이즈 이미지 URL을 생성한다.
+     * NCP Image Optimizer(CDN)의 경로 규칙:
+     *   https://{optimizer-domain}/{bucketName}/{objectKey}?w=600&h=600
+     *
+     * 여기서는 예시로 600x600으로 리사이즈하도록 고정.
+     * (나중에 필요하면 파라미터로 width/height를 받아서 확장 가능)
+     */
+    private String buildOptimizerUrl(String objectKey) {
+        return String.format(
+                "%s/%s/%s?w=600&h=600",
+                optimizerDomain,
                 bucketName,
                 objectKey
         );
