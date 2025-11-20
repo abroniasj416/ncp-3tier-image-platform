@@ -105,9 +105,9 @@ function App() {
           <div style={styles.resultBox}>
             <p>업로드 결과:</p>
             <pre style={styles.pre}>{JSON.stringify(uploadResult, null, 2)}</pre>
-            {uploadResult.objectUrl && ( 
+            {uploadResult.optimizedUrl && ( 
               <img
-                src={uploadResult.objectUrl}
+                src={uploadResult.optimizedUrl}
                 alt="업로드 미리보기"
                 style={styles.preview}
               />
