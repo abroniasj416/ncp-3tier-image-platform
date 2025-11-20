@@ -33,12 +33,19 @@ public class ImageService {
     @Value("${ncp.optimizer.domain}")
     private String optimizerDomain;
 
+    @Value("${ncp.optimizer.query}")
+    private String optimizerQuery;
+
+    @Value("${ncp.optimizer.project-id}")
+    private String optimizerProjectId;
+
     /**
      * MultipartFile을 Object Storage에 업로드하고,
      * 퍼블릭 URL과 오브젝트 키를 반환한다.
      */
     public ImageUploadResponse upload(MultipartFile file) {
         validateNotEmpty(file);
+        validateImageContentType(file);
 
         String objectKey = buildObjectKey(file.getOriginalFilename());
         ObjectMetadata metadata = buildObjectMetadata(file);
@@ -69,13 +76,20 @@ public class ImageService {
         }
     }
 
+    private void validateImageContentType(MultipartFile file) {
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("이미지 파일만 업로드할 수 있습니다.");
+        }
+    }
+
     /**
      * 업로드에 사용할 오브젝트 키를 생성한다.
      * 예) original/2025/11/20/uuid.jpg
      */
     private String buildObjectKey(String originalFilename) {
         String extension = extractExtension(originalFilename);
-        String datePath = LocalDate.now().toString().replace("-", "/"); // 2025/11/20 → 2025/11/20
+        String datePath = LocalDate.now().toString().replace("-", "/"); // 2025-11-20 → 2025/11/20
         String randomName = UUID.randomUUID().toString();
 
         return String.format("%s/%s/%s%s", baseFolder, datePath, randomName, extension);
@@ -101,30 +115,28 @@ public class ImageService {
 
     /**
      * 브라우저에서 접근 가능한 퍼블릭 URL을 생성한다.
-     * 예) https://image-platform-bucket.kr.object.ncloudstorage.com/original/...
+     * AmazonS3 클라이언트가 가진 endpoint/bucket 설정을 그대로 사용.
      */
     private String buildPublicUrl(String objectKey) {
-        return String.format(
-                "https://%s.kr.object.ncloudstorage.com/%s",
-                bucketName,
-                objectKey
-        );
+        return s3Client.getUrl(bucketName, objectKey).toString();
     }
 
     /**
      * Image Optimizer를 거친 리사이즈 이미지 URL을 생성한다.
-     * NCP Image Optimizer(CDN)의 경로 규칙:
-     *   https://{optimizer-domain}/{bucketName}/{objectKey}?w=600&h=600
      *
-     * 여기서는 예시로 600x600으로 리사이즈하도록 고정.
-     * (나중에 필요하면 파라미터로 width/height를 받아서 확장 가능)
+     * Image Optimizer URL 규칙 (예시):
+     *   https://{optimizer-domain}/{projectId}/{objectKey}?{optimizerQuery}
+     *
+     * 대상 원본에 이미 bucket이 설정되어 있으므로,
+     * 경로에 bucketName을 다시 붙이지 않는다.
      */
     private String buildOptimizerUrl(String objectKey) {
         return String.format(
-                "%s/%s/%s?w=600&h=600",
+                "%s/%s/%s?%s",
                 optimizerDomain,
-                bucketName,
-                objectKey
+                optimizerProjectId,
+                objectKey,
+                optimizerQuery
         );
     }
 }
