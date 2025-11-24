@@ -8,7 +8,7 @@ WEB–WAS–DB로 구성된 3-Tier 아키텍처와 CDN, Object Storage, Image Op
 
 ## 전체 아키텍처 구조
 
-![아키텍처 구조도](./3-tier-architecture.png)
+![아키텍처 구조도](./3-tier-architecture.jpg)
 
 ---
 
